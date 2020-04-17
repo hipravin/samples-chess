@@ -1,0 +1,28 @@
+.cell {
+    width: 60px;
+    height: 60px;
+}
+.cell-white {
+    background-color: #ffff80;
+}
+.cell-black {
+    background-color: #a3a264;
+}
+
+td[data-piece='bishop-black']{
+    background-image: url("/img/bishop.svg");
+    background-size: contain;
+    fill: white;
+}
+
+td[data-piece-state='selected']{
+    border: 5px solid black !important; ;
+}
+
+td[data-piece-state='eat']{
+    border: 5px solid red !important;
+}
+
+td[data-piece-state='move']{
+    border: 5px solid green !important;
+}
