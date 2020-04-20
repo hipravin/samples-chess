@@ -32,7 +32,8 @@ public abstract class Piece {
                 game.at(pos).map(piece -> piece.pieceColor == pieceColor).orElse(false));
 
         //remove target positions where king will be in trouble after move
-        moves.removeIf(m -> game.applyMove(new PieceMove(position, m)).kingUnderAttackAfterMove());
+        PieceColor currentPlayer = game.getCurrentPlayer();
+        moves.removeIf(m -> game.applyMoveNoValidate(new PieceMove(position, m)).kingUnderAttack(currentPlayer));
 
         return moves;
     }

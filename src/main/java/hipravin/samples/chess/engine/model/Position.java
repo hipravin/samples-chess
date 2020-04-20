@@ -21,6 +21,72 @@ public class Position {
         this.y = y;
     }
 
+    public static Position of(String s) {
+        if(!s.matches("(?i)[A-H][1-8]")) {
+            throw new IllegalArgumentException("Position invalid: " + s);
+        }
+
+        //JDK 12 switch would be nice there
+        int x = 0;
+        switch (s.toLowerCase().charAt(0)) {
+            case 'a':
+                x = 1;
+                break;
+            case 'b':
+                x = 2;
+                break;
+            case 'c':
+                x = 3;
+                break;
+            case 'd':
+                x = 4;
+                break;
+            case 'e':
+                x = 5;
+                break;
+            case 'f':
+                x = 6;
+                break;
+            case 'g':
+                x = 7;
+                break;
+            case 'h':
+                x = 8;
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + s.toLowerCase().charAt(0));
+        }
+        int y = Integer.parseInt(s.substring(1));
+
+        return new Position(x, y);
+    }
+
+    /**
+     * @return "e2", "a1", ...
+     */
+    public String stringValue() {
+        switch (x) {
+            case 1:
+                return "a" + y;
+            case 2:
+                return "b" + y;
+            case 3:
+                return "c" + y;
+            case 4:
+                return "d" + y;
+            case 5:
+                return "e" + y;
+            case 6:
+                return "f" + y;
+            case 7:
+                return "g" + y;
+            case 8:
+                return "h" + y;
+            default:
+                throw new IllegalStateException("Unexpected value: " + x);
+        }
+    }
+
     public static Position of(int x, int y) {
         return new Position(x, y);
     }
@@ -110,7 +176,7 @@ public class Position {
     }
 
     public List<Stream<Position>> bishop() {
-        return Arrays.asList(up(), down(), left(), right());
+        return Arrays.asList(diagDl(), diagDr(), diagUl(), diagUr());
     }
 
     public List<Stream<Position>> queen() {
@@ -191,9 +257,6 @@ public class Position {
 
     @Override
     public String toString() {
-        return "Position{" +
-                "x=" + x +
-                ", y=" + y +
-                '}';
+        return stringValue();
     }
 }

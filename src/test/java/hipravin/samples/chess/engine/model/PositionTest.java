@@ -45,5 +45,12 @@ class PositionTest {
         assertEquals(14, rock.size());
     }
 
-
+    @Test
+    void testConvert() {
+        for (int x = 1; x <= 8; x++) {
+            for (int y = 1; y <= 8; y++) {
+                 assertEquals(Position.of(x, y), Position.of(Position.of(x, y).stringValue()));
+            }
+        }
+    }
 }

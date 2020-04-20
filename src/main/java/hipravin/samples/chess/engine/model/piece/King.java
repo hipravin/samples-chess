@@ -23,11 +23,14 @@ public class King extends Piece {
     public Set<Position> validPieceMoves(ChessGame game) {
         Set<Position> moves = new HashSet<>();
         moves.addAll(position.king());
-        moves.addAll(castling(game).collect(Collectors.toList()));
+        //check castling only for current player to prevent infinite recursion
+        if(game.getCurrentPlayer() == pieceColor) {
+            moves.addAll(castling(game).collect(Collectors.toList()));
+        }
 
         return moves;
     }
-    private Stream<Position> castling(ChessGame game) {
+    public Stream<Position> castling(ChessGame game) {
         if(position.equals(START_POSITION.get(pieceColor)) && neverMoved(position, game)) {
             return Stream.of(castlingLeft(game), castlingRight(game))
                     .filter(Optional::isPresent)

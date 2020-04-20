@@ -1,5 +1,7 @@
 package hipravin.samples.chess.engine.model;
 
+import hipravin.samples.chess.api.model.ColorDto;
+
 public enum PieceColor {
     WHITE,
     BLACK;
@@ -14,4 +16,9 @@ public enum PieceColor {
                 throw new IllegalStateException();
         }
     }
+
+    public ColorDto toColorDto() {
+        return this == WHITE ? ColorDto.WHITE : ColorDto.BLACK;
+    }
+
 }

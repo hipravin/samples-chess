@@ -1,12 +1,12 @@
 package hipravin.samples.chess.engine.model;
 
-import hipravin.samples.chess.engine.model.piece.Pawn;
-import hipravin.samples.chess.engine.model.piece.Piece;
+import hipravin.samples.chess.engine.model.piece.*;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Board implements Cloneable {
     final Map<Position, Piece> whitePieces = new HashMap<>();
@@ -22,12 +22,52 @@ public class Board implements Cloneable {
                 .collect(Collectors.toMap(Piece::getPosition, Function.identity())));
     }
 
+    public static Board startBoard() {
+        Board board = new Board();
+
+        //white pawns
+        Stream.iterate(Position.of(1, 2), Position::right1).limit(8)
+                .forEach(p -> board.put(new Pawn(p, PieceColor.WHITE)));
+        //black pawns
+        Stream.iterate(Position.of(1, 7), Position::right1).limit(8)
+                .forEach(p -> board.put(new Pawn(p, PieceColor.BLACK)));
+
+        board.put(new Rock(Position.of(1, 1), PieceColor.WHITE));
+        board.put(new Rock(Position.of(8, 1), PieceColor.WHITE));
+        board.put(new Rock(Position.of(1, 8), PieceColor.BLACK));
+        board.put(new Rock(Position.of(8, 8), PieceColor.BLACK));
+
+        board.put(new Knight(Position.of(2, 1), PieceColor.WHITE));
+        board.put(new Knight(Position.of(7, 1), PieceColor.WHITE));
+        board.put(new Knight(Position.of(2, 8), PieceColor.BLACK));
+        board.put(new Knight(Position.of(7, 8), PieceColor.BLACK));
+
+        board.put(new Bishop(Position.of(3, 1), PieceColor.WHITE));
+        board.put(new Bishop(Position.of(6, 1), PieceColor.WHITE));
+        board.put(new Bishop(Position.of(3, 8), PieceColor.BLACK));
+        board.put(new Bishop(Position.of(6, 8), PieceColor.BLACK));
+
+        board.put(new Queen(Position.of(4, 1), PieceColor.WHITE));
+        board.put(new Queen(Position.of(4, 8), PieceColor.BLACK));
+
+        board.put(new King(Position.of(5, 1), PieceColor.WHITE));
+        board.put(new King(Position.of(5, 8), PieceColor.BLACK));
+
+        return board;
+    }
+
+
     public Position king(PieceColor side) {
         return pieces(side).stream()
                 .filter(p -> p.getPieceType() == Type.KING)
                 .findAny()
                 .map(Piece::getPosition)
                 .orElseThrow();
+    }
+
+    public Collection<Piece> pieces() {
+        return Stream.of(whitePieces.values(), blackPieces.values())
+                .flatMap(Collection::stream).collect(Collectors.toList());
     }
 
     public Collection<Piece> pieces(PieceColor side) {
@@ -47,6 +87,10 @@ public class Board implements Cloneable {
         } else {
             cloned.applyStandardMove(pieceMove);
         }
+        if (pieceMove.getPromotion() != null) {
+            applyPromotion(pieceMove);
+        }
+
         return cloned;
     }
 
@@ -61,7 +105,7 @@ public class Board implements Cloneable {
         Position rockFrom;
         Position rockTo;
 
-        if(to.getX() < from.getX()) {
+        if (to.getX() < from.getX()) {
             rockFrom = to.left1().left1();
             rockTo = to.right1();
         } else {
@@ -92,6 +136,12 @@ public class Board implements Cloneable {
         pieceMap(pieceColor.negate()).remove(near);
     }
 
+    private void applyPromotion(PieceMove pieceMove) {
+        PieceColor pieceColor = at(pieceMove.getTo()).orElseThrow().getPieceColor();
+        pieceMap(pieceColor).put(pieceMove.getTo(),
+                pieceMove.getPromotion().newPiece(pieceMove.getTo(), pieceColor));
+    }
+
     private void applyStandardMove(PieceMove pieceMove) {
         Position from = pieceMove.getFrom();
         Position to = pieceMove.getTo();
@@ -113,6 +163,17 @@ public class Board implements Cloneable {
         return whitePieces.containsKey(position)
                 ? Optional.of(whitePieces.get(position))
                 : Optional.ofNullable(blackPieces.get(position));
+    }
+
+    void put(Piece p) {
+        switch (p.getPieceColor()) {
+            case WHITE:
+                whitePieces.put(p.getPosition(), p);
+                break;
+            case BLACK:
+                blackPieces.put(p.getPosition(), p);
+                break;
+        }
     }
 
     @Override

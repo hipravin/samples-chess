@@ -5,16 +5,50 @@ import hipravin.samples.chess.engine.model.PieceColor;
 import hipravin.samples.chess.engine.model.PieceMove;
 import hipravin.samples.chess.engine.model.Position;
 import hipravin.samples.chess.engine.model.piece.*;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.collections.Sets;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ChessGameTest {
+
+    @Test
+    void testStartGame() {
+        ChessGame game = ChessGame.startGame();
+
+        assertEquals(16, game.getBoard().pieces(PieceColor.WHITE).size());
+        assertEquals(16, game.getBoard().pieces(PieceColor.BLACK).size());
+    }
+
+    @Test
+    void testMovesInvalid() {
+        ChessGame game = ChessGame.startGame();
+
+        Assertions.assertThrows(InvalidMoveException.class, ()-> {
+            movesFromString("e2e7").forEach(game::applyMove);
+        });
+    }
+
+    @Test
+    void testMoves() {
+        ChessGame game = ChessGame.startGame();
+        //so colled "detsky mat"
+        List<PieceMove> moves = movesFromString("e2e4 e7e5 d1h5 b8c6 f1c4 g8f6 h5f7").collect(Collectors.toList());
+        for (PieceMove move : moves) {
+            game = game.applyMove(move);
+        }
+
+        assertTrue(game.isFinished());
+        assertEquals(GameStatus.CHECKMATE, game.getStatus());
+    }
 
     @Test
     void testValidMovesKnight1() {
@@ -110,5 +144,14 @@ class ChessGameTest {
 
         //castling only right bevause of queen attacking passing square
         assertEquals(Sets.newSet(kp.right1(), kp.right1().right1()), validMoves);
+    }
+
+    private static Stream<PieceMove> movesFromString(String moves) {
+        return Arrays.stream(moves.split("\\s+"))
+                .map(s -> {
+                    Position from = Position.of(s.substring(0,2));
+                    Position to = Position.of(s.substring(2));
+                    return  new PieceMove(from, to);
+                });
     }
 }

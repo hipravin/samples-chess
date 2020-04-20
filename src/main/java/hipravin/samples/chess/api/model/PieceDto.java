@@ -3,19 +3,19 @@ package hipravin.samples.chess.api.model;
 import java.util.List;
 
 public class PieceDto {
-    private SquareDto square;
+    private String position;
     private ColorDto color;
     private PieceTypeDto pieceType;
 
-    private List<SquareDto> validMoves;
+    private List<String> validMoves;
 //    List<SquareDto> validAttackMoves;
 
-    public SquareDto getSquare() {
-        return square;
+    public String getPosition() {
+        return position;
     }
 
-    public void setSquare(SquareDto square) {
-        this.square = square;
+    public void setPosition(String position) {
+        this.position = position;
     }
 
     public ColorDto getColor() {
@@ -34,11 +34,11 @@ public class PieceDto {
         this.pieceType = pieceType;
     }
 
-    public List<SquareDto> getValidMoves() {
+    public List<String> getValidMoves() {
         return validMoves;
     }
 
-    public void setValidMoves(List<SquareDto> validMoves) {
+    public void setValidMoves(List<String> validMoves) {
         this.validMoves = validMoves;
     }
 }
