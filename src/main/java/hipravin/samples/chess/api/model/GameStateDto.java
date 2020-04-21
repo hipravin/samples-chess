@@ -7,6 +7,11 @@ public class GameStateDto {
     private List<PieceDto> pieces;
     private ColorDto currentPlayer;
     private MoveDto lastOpponentMove;
+
+    private boolean myTurn = false;
+    private boolean gameFinished = false;
+    private boolean check = false;
+    private String gameFinishedReason = null;
     private int moveNumber = 1;
 
     public List<PieceDto> getPieces() {
@@ -39,5 +44,37 @@ public class GameStateDto {
 
     public void setLastOpponentMove(MoveDto lastOpponentMove) {
         this.lastOpponentMove = lastOpponentMove;
+    }
+
+    public boolean isGameFinished() {
+        return gameFinished;
+    }
+
+    public void setGameFinished(boolean gameFinished) {
+        this.gameFinished = gameFinished;
+    }
+
+    public String getGameFinishedReason() {
+        return gameFinishedReason;
+    }
+
+    public void setGameFinishedReason(String gameFinishedReason) {
+        this.gameFinishedReason = gameFinishedReason;
+    }
+
+    public boolean isCheck() {
+        return check;
+    }
+
+    public void setCheck(boolean check) {
+        this.check = check;
+    }
+
+    public boolean isMyTurn() {
+        return myTurn;
+    }
+
+    public void setMyTurn(boolean myTurn) {
+        this.myTurn = myTurn;
     }
 }

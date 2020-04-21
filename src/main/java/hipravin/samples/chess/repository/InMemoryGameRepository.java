@@ -32,8 +32,8 @@ public class InMemoryGameRepository implements GameRepository {
     }
 
     @Override
-    public void save(String id, ChessGameMetadata chessGameMetadata) {
-        metadataMap.put(id, chessGameMetadata);
+    public void save(ChessGameMetadata chessGameMetadata) {
+        metadataMap.put(chessGameMetadata.getId(), chessGameMetadata);
     }
 
 

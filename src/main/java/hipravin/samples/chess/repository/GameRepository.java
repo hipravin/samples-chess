@@ -6,7 +6,7 @@ import java.util.Optional;
 public interface GameRepository {
     ChessGameMetadata newGame();
     Optional<ChessGameMetadata> find(String id);
-    void save(String id, ChessGameMetadata chessGameMetadata);
+    void save(ChessGameMetadata chessGameMetadata);
 
     /**
      * for housekeeping

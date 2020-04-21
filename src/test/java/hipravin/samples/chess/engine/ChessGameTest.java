@@ -9,16 +9,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.collections.Sets;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ChessGameTest {
+public class ChessGameTest {
 
     @Test
     void testStartGame() {
@@ -26,6 +23,10 @@ class ChessGameTest {
 
         assertEquals(16, game.getBoard().pieces(PieceColor.WHITE).size());
         assertEquals(16, game.getBoard().pieces(PieceColor.BLACK).size());
+
+        long totalMovesStart = game.getValidMovesForCurrentPlayer().values().stream()
+                .mapToLong(Collection::size).sum();
+        assertEquals(20, totalMovesStart);
     }
 
     @Test
@@ -146,7 +147,7 @@ class ChessGameTest {
         assertEquals(Sets.newSet(kp.right1(), kp.right1().right1()), validMoves);
     }
 
-    private static Stream<PieceMove> movesFromString(String moves) {
+    public static Stream<PieceMove> movesFromString(String moves) {
         return Arrays.stream(moves.split("\\s+"))
                 .map(s -> {
                     Position from = Position.of(s.substring(0,2));

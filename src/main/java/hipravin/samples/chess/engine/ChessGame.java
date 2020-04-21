@@ -41,7 +41,7 @@ public class ChessGame {
         return chessGame;
     }
 
-    public List<PieceDto> calculatePieceDtos() {
+    public List<PieceDto> calculatePieceDtos(boolean withValidMoves) {
         return board.pieces()
                 .stream()
                 .map(p -> {
@@ -49,9 +49,11 @@ public class ChessGame {
                     pd.setPieceType(PieceTypeDto.valueOf(p.getPieceType().name()));
                     pd.setPosition(p.getPosition().stringValue());
                     pd.setColor(p.getPieceColor().toColorDto());
-                    if(validMovesForCurrentPlayer.containsKey(p.getPosition())) {
-                        pd.setValidMoves(validMovesForCurrentPlayer.get(p.getPosition()).stream()
-                                .map(Position::stringValue).collect(Collectors.toList()));
+                    if(withValidMoves) {
+                        if (validMovesForCurrentPlayer.containsKey(p.getPosition())) {
+                            pd.setValidMoves(validMovesForCurrentPlayer.get(p.getPosition()).stream()
+                                    .map(Position::stringValue).collect(Collectors.toList()));
+                        }
                     }
                     return pd;
                 }).collect(Collectors.toList());

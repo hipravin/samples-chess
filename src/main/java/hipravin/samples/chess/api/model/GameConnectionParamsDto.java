@@ -1,15 +1,15 @@
 package hipravin.samples.chess.api.model;
 
-public class GameConnectionParams {
+public class GameConnectionParamsDto {
     private String id;
     private String token;
 
     private GameStateDto gameState;
 
-    public GameConnectionParams() {
+    public GameConnectionParamsDto() {
     }
 
-    public GameConnectionParams(String id, String token, GameStateDto gameState) {
+    public GameConnectionParamsDto(String id, String token, GameStateDto gameState) {
         this.id = id;
         this.token = token;
         this.gameState = gameState;

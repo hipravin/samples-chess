@@ -2,6 +2,7 @@ package hipravin.samples.chess.repository;
 
 import hipravin.samples.chess.api.model.GameStateDto;
 import hipravin.samples.chess.engine.ChessGame;
+import hipravin.samples.chess.engine.model.GamePlayerDesc;
 import hipravin.samples.chess.engine.model.PieceColor;
 import hipravin.samples.chess.engine.model.PieceMove;
 
@@ -17,20 +18,42 @@ public class ChessGameMetadata {
     private boolean secondPlayerJoined = false;
 
     public GameStateDto getGameStateDtoForPlayer(String token) {
+        boolean forCurrentPlayer = currentPlayerToken().equals(token);
+
         GameStateDto gameStateDto = new GameStateDto();
+        gameStateDto.setMyTurn(forCurrentPlayer);
         gameStateDto.setCurrentPlayer(chessGame.getCurrentPlayer().toColorDto());
 
-        gameStateDto.setPieces(chessGame.calculatePieceDtos());
+        gameStateDto.setPieces(chessGame.calculatePieceDtos(forCurrentPlayer));
         if(!chessGame.getPreviousMoves().isEmpty()) {
             gameStateDto.setLastOpponentMove(
                     chessGame.getPreviousMoves().get(chessGame.getPreviousMoves().size() - 1).toDto());
         }
 
-//        chessGame.getBoard().pieceMap(chessGame.getCurrentPlayer()).values()
-
-//        gameStateDto.setPieces(chessGame.);
+        switch(chessGame.getStatus()) {
+            case CHECK:
+                gameStateDto.setCheck(true);
+                break;
+            case CHECKMATE:
+                gameStateDto.setGameFinished(true);
+                gameStateDto.setGameFinishedReason("Checkmate! " + chessGame.getCurrentPlayer().negate() + " wins!");
+                break;
+            case DRAW_STALEMATE:
+                gameStateDto.setGameFinished(true);
+                gameStateDto.setGameFinishedReason("Game finished with a stalemate deaw!");
+                break;
+            case NORMAL:
+                break;
+        }
 
         return gameStateDto;
+    }
+
+    public GamePlayerDesc currentPlayerDesc() {
+        return new GamePlayerDesc(id, currentPlayerToken());
+    }
+    public GamePlayerDesc waintingPlayerDesc() {
+        return new GamePlayerDesc(id, waitingPlayerToken());
     }
 
     public void applyMove(PieceMove pieceMove) {
@@ -69,6 +92,10 @@ public class ChessGameMetadata {
 
     public String currentPlayerToken() {
         return playerTokens.get(chessGame.getCurrentPlayer());
+    }
+
+    public String waitingPlayerToken() {
+        return playerTokens.get(chessGame.getCurrentPlayer().negate());
     }
 
     public void setWhenCreated(OffsetDateTime whenCreated) {

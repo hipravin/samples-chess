@@ -1,2 +1,6 @@
 server:
   port: 8085
+
+logging.level:
+  hipravin:
+    samples: DEBUG
