@@ -2,6 +2,7 @@
     width: 60px;
     height: 60px;
 }
+
 .cell-white {
     background-color: #ffff80;
 }
@@ -10,19 +11,92 @@
 }
 
 td[data-piece='bishop-black']{
-    background-image: url("/img/bishop.svg");
+    background-image: url("/img/bishop-black.png");
     background-size: contain;
-    fill: white;
+}
+
+td[data-piece='bishop-white']{
+    background-image: url("/img/bishop-white.png");
+    background-size: contain;
+}
+
+td[data-piece='king-black']{
+    background-image: url("/img/king-black.png");
+    background-size: contain;
+}
+
+td[data-piece='king-white']{
+    background-image: url("/img/king-white.png");
+    background-size: contain;
+}
+
+td[data-piece='pawn-white']{
+    background-image: url("/img/pawn-white.png");
+    background-size: contain;
+}
+td[data-piece='pawn-black']{
+    background-image: url("/img/pawn-black.png");
+    background-size: contain;
+}
+
+td[data-piece='rock-white']{
+    background-image: url("/img/rock-white.png");
+    background-size: contain;
+}
+td[data-piece='rock-black']{
+    background-image: url("/img/rock-black.png");
+    background-size: contain;
+}
+
+td[data-piece='knight-white']{
+    background-image: url("/img/knight-white.png");
+    background-size: contain;
+}
+td[data-piece='knight-black']{
+    background-image: url("/img/knight-black.png");
+    background-size: contain;
+}
+
+td[data-piece='queen-white']{
+    background-image: url("/img/queen-white.png");
+    background-size: contain;
+}
+td[data-piece='queen-black']{
+    background-image: url("/img/queen-black.png");
+    background-size: contain;
 }
 
 td[data-piece-state='selected']{
-    border: 5px solid black !important; ;
+    border: 5px ridge black !important;
 }
 
-td[data-piece-state='eat']{
-    border: 5px solid red !important;
-}
+/*td[data-piece-state='eat']{*/
+/*    border: 5px solid red !important;*/
+/*}*/
 
 td[data-piece-state='move']{
-    border: 5px solid green !important;
+    border: 5px ridge green !important;
+}
+
+.masthead {
+    margin-bottom: 15px;
+    background-color: rgba(251, 255, 0, 0.24);
+}
+
+.board {
+
+}
+
+.ontop {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 200px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(255,255,255); /* Fallback color */
+    background-color: rgba(255,255,255,0.95); /* Black w/ opacity */
 }

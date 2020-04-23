@@ -5,6 +5,8 @@ import hipravin.samples.chess.api.model.GameStateDto;
 import hipravin.samples.chess.api.model.MoveDto;
 import hipravin.samples.chess.engine.ChessGameTest;
 import hipravin.samples.chess.engine.model.PieceMove;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,16 +20,17 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ChessGameControllerTest {
+    public static final int TIMEOUT = 500;
+
+    ExecutorService cfPool = Executors.newFixedThreadPool(12, r -> new Thread(r, "completable future pool"));
 
     @LocalServerPort
     private int port;
@@ -36,6 +39,24 @@ class ChessGameControllerTest {
     private TestRestTemplate restTemplate;
 
     @Test
+    @Disabled
+    void dksyMultith() throws InterruptedException {
+        AtomicInteger counter = new AtomicInteger();
+        ExecutorService pool = Executors.newFixedThreadPool(4, r -> new Thread(r, "run pool #" + counter.getAndIncrement()));
+
+        for (int i = 0; i < 100; i++) {
+            pool.submit(() -> {
+                try {
+                    testDetskyMat();
+                } catch (ExecutionException | InterruptedException | TimeoutException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        Thread.sleep(100_000);
+    }
+
+    @RepeatedTest(10)
     void testDetskyMat() throws ExecutionException, InterruptedException, TimeoutException {
         List<MoveDto> whiteMoves = ChessGameTest.movesFromString("e2e4 d1h5 f1c4 h5f7")
                 .map(PieceMove::toDto).collect(Collectors.toList());
@@ -52,12 +73,12 @@ class ChessGameControllerTest {
         GameConnectionParamsDto black = join(white.getId());
 
         CompletableFuture<GameStateDto> whiteMoveseq = CompletableFuture.supplyAsync(() ->
-                moveSequence(white.getId(), white.getToken(), whiteMoves));
+                moveSequence(white.getId(), white.getToken(), whiteMoves), cfPool);
         CompletableFuture<GameStateDto> blackMoveseq = CompletableFuture.supplyAsync(() ->
-                moveSequence(black.getId(), black.getToken(), blackMoves));
+                moveSequence(black.getId(), black.getToken(), blackMoves), cfPool);
 
-        GameStateDto whiteFinal = whiteMoveseq.get(5, TimeUnit.SECONDS);
-        GameStateDto blackFinal = blackMoveseq.get(5, TimeUnit.SECONDS);
+        GameStateDto whiteFinal = whiteMoveseq.get(TIMEOUT * 2, TimeUnit.SECONDS);
+        GameStateDto blackFinal = blackMoveseq.get(TIMEOUT * 2, TimeUnit.SECONDS);
 
         assertTrue(whiteFinal.isGameFinished());
         assertTrue(blackFinal.isGameFinished());
@@ -70,7 +91,7 @@ class ChessGameControllerTest {
         GameStateDto state = null;
         for (MoveDto move : moves) {
             try {
-                state = awaitMove(id, token).get(1, TimeUnit.SECONDS);
+                state = awaitMove(id, token).get(TIMEOUT, TimeUnit.SECONDS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 e.printStackTrace();
                 throw new AssertionFailedError(e.getMessage());
@@ -82,7 +103,7 @@ class ChessGameControllerTest {
 
         if(state != null && !state.isGameFinished()) {
             try {
-                state = awaitMove(id, token).get(1, TimeUnit.SECONDS);
+                state = awaitMove(id, token).get(TIMEOUT, TimeUnit.SECONDS);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw new AssertionFailedError(e.getMessage());
             }
@@ -90,9 +111,6 @@ class ChessGameControllerTest {
 
         return state;
     }
-
-//            List<PieceMove> moves = movesFromString("e2e4 e7e5 d1h5 b8c6 f1c4 g8f6 h5f7").collect(Collectors.toList());
-
 
     @Test
     public void testGameNotFoundJoin() {
@@ -128,7 +146,7 @@ class ChessGameControllerTest {
 
     private CompletableFuture<GameStateDto> awaitMove(String id, String pheader) {
         return CompletableFuture.supplyAsync(() ->
-                post(id + "/wait-for-my-move", Optional.of(pheader), "", GameStateDto.class));
+                post(id + "/wait-for-my-move", Optional.of(pheader), "", GameStateDto.class), cfPool);
     }
 
     private GameStateDto move(String id, String pheader, MoveDto moveDto) {

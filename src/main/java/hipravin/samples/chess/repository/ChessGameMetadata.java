@@ -52,7 +52,7 @@ public class ChessGameMetadata {
     public GamePlayerDesc currentPlayerDesc() {
         return new GamePlayerDesc(id, currentPlayerToken());
     }
-    public GamePlayerDesc waintingPlayerDesc() {
+    public GamePlayerDesc waitingPlayerDesc() {
         return new GamePlayerDesc(id, waitingPlayerToken());
     }
 

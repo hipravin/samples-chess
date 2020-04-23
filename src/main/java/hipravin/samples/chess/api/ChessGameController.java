@@ -58,6 +58,9 @@ public class ChessGameController {
         log.debug("move {} {} {}", id, token, moveDto);
 
         ChessGameMetadata chessGameMetadata = gameManager.applyMove(id, token, moveDto);
+        if(chessGameMetadata.getChessGame().isFinished()) {
+            log.info("game finished {}", chessGameMetadata.getChessGame().getStatus());
+        }
         return chessGameMetadata.getGameStateDtoForPlayer(token);
     }
 
@@ -67,7 +70,8 @@ public class ChessGameController {
 
         ChessGameMetadata metadata = gameManager.joinGame(id);
         String blackPlayerToken = metadata.getPlayerTokens().get(PieceColor.BLACK);
-        return ResponseEntity.ok(new GameConnectionParamsDto(id, blackPlayerToken, metadata.getGameStateDtoForPlayer(blackPlayerToken)));
+        return ResponseEntity.ok(new GameConnectionParamsDto(id, blackPlayerToken,
+                ColorDto.BLACK, metadata.getGameStateDtoForPlayer(blackPlayerToken)));
     }
 
     @PostMapping("/host")
@@ -77,7 +81,7 @@ public class ChessGameController {
 
         log.debug("host {} {}", metadata.getId(), whitePlayerToken);
         return ResponseEntity.ok(new GameConnectionParamsDto(metadata.getId(), whitePlayerToken,
-                metadata.getGameStateDtoForPlayer(whitePlayerToken)));
+                ColorDto.WHITE, metadata.getGameStateDtoForPlayer(whitePlayerToken)));
     }
 
     //supposed to be long polling

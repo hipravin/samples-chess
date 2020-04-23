@@ -12,9 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Flow;
-import java.util.concurrent.SubmissionPublisher;
+import java.util.Optional;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 @Service
@@ -22,8 +21,9 @@ public class GameManager {
     private final Logger log = LoggerFactory.getLogger(GameManager.class);
 
     private final GameRepository gameRepository;
-    private final SubmissionPublisher<ChessGameMetadata> gameUpdatesPublisher = new SubmissionPublisher<>();
-    private final Map<GamePlayerDesc, Consumer<ChessGameMetadata>> handlers = new ConcurrentHashMap<>();
+    private final ExecutorService executor = Executors.newFixedThreadPool(4);
+    private final SubmissionPublisher<ChessGameMetadata> gameUpdatesPublisher = new SubmissionPublisher<>(executor, Integer.MAX_VALUE);
+    private final ConcurrentMap<GamePlayerDesc, Consumer<ChessGameMetadata>> handlers = new ConcurrentHashMap<>();
 
     public GameManager(GameRepository gameRepository) {
         this.gameRepository = gameRepository;
@@ -57,6 +57,7 @@ public class GameManager {
         chessGameMetadata.applyMove(PieceMove.of(moveDto));
         gameRepository.save(chessGameMetadata);
 
+        log.debug("Submit called {} {} {}", id, token, moveDto);
         gameUpdatesPublisher.submit(chessGameMetadata);
         return chessGameMetadata;
     }
@@ -81,15 +82,13 @@ public class GameManager {
 
         @Override
         public void onNext(ChessGameMetadata metadata) {
-            log.debug("On next {} {}", metadata.getId(), metadata.getChessGame().getCurrentPlayer());
+            log.debug("On next {} {} {}", metadata.getId(), metadata.currentPlayerToken(), metadata.getChessGame().getCurrentPlayer());
 
             GamePlayerDesc gamePlayerDesc = metadata.currentPlayerDesc();
-            synchronized (handlers) {
-                if (handlers.containsKey(gamePlayerDesc)) {
-                    handlers.get(gamePlayerDesc).accept(metadata);
-                    handlers.remove(gamePlayerDesc);
-                }
-            }
+            Optional.ofNullable(handlers.remove(gamePlayerDesc)).ifPresent(h -> {
+                log.debug("Handkers present {} {} {}", metadata.getId(), metadata.currentPlayerToken(), metadata.getChessGame().getCurrentPlayer());
+                h.accept(metadata);
+            });
 
             subscription.request(1);
         }
