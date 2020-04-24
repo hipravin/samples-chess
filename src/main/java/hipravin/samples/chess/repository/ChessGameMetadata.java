@@ -37,6 +37,7 @@ public class ChessGameMetadata {
             case CHECKMATE:
                 gameStateDto.setGameFinished(true);
                 gameStateDto.setGameFinishedReason("Checkmate! " + chessGame.getCurrentPlayer().negate() + " wins!");
+                gameStateDto.setWinner(chessGame.getCurrentPlayer().negate().toColorDto());
                 break;
             case DRAW_STALEMATE:
                 gameStateDto.setGameFinished(true);

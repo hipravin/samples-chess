@@ -67,15 +67,18 @@ td[data-piece='queen-black']{
 }
 
 td[data-piece-state='selected']{
-    border: 5px ridge black !important;
+    /*border: 5px ridge black !important;*/
+    box-shadow: 0 0 0 5px black inset !important;
 }
 
-/*td[data-piece-state='eat']{*/
-/*    border: 5px solid red !important;*/
-/*}*/
+td[data-piece-state='oppmove']{
+    box-shadow: 0 0 0 5px red inset !important;
+}
 
 td[data-piece-state='move']{
-    border: 5px ridge green !important;
+    /*border: 5px ridge green !important;*/
+    box-shadow:0 0 0 5px green inset !important;
+
 }
 
 .masthead {
@@ -99,4 +102,14 @@ td[data-piece-state='move']{
     overflow: auto; /* Enable scroll if needed */
     background-color: rgb(255,255,255); /* Fallback color */
     background-color: rgba(255,255,255,0.95); /* Black w/ opacity */
+}
+
+.promimg {
+    width: 150px;
+    height: 150px;
+    border: 3px dashed black;
+}
+
+#gamestatus {
+    transition: opacity 0.3s;
 }

@@ -88,7 +88,7 @@ public class Board implements Cloneable {
             cloned.applyStandardMove(pieceMove);
         }
         if (pieceMove.getPromotion() != null) {
-            applyPromotion(pieceMove);
+            cloned.applyPromotion(pieceMove);
         }
 
         return cloned;

@@ -52,7 +52,7 @@ public class ChessGameController {
     }
 
     @PostMapping("/{id}/move")
-    public GameStateDto makeMove(@RequestHeader("ptoken") String token,
+    public ResponseEntity<?> makeMove(@RequestHeader("ptoken") String token,
                                  @PathVariable("id") String id,
                                  @RequestBody MoveDto moveDto) {
         log.debug("move {} {} {}", id, token, moveDto);
@@ -61,7 +61,7 @@ public class ChessGameController {
         if(chessGameMetadata.getChessGame().isFinished()) {
             log.info("game finished {}", chessGameMetadata.getChessGame().getStatus());
         }
-        return chessGameMetadata.getGameStateDtoForPlayer(token);
+        return ResponseEntity.ok(chessGameMetadata.getGameStateDtoForPlayer(token));
     }
 
     @PostMapping("/{id}/join")

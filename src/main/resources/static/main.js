@@ -18,7 +18,6 @@ var state = {
     validMoves: {}
 };
 
-
 function host() {
 
     $.ajax({
@@ -35,6 +34,7 @@ function host() {
         }
     });
 }
+
 function join(gameid) {
     $.ajax({
         type: "POST",
@@ -45,16 +45,16 @@ function join(gameid) {
         success: function (data) {
             initGameParams(data);
         },
-        failure: function (errMsg) {
-            alert(errMsg);
+        error: function (errMsg) {
+            if (errMsg.status === 404) {
+                alert('Игра не найдена, проверьте ссылку или попробуйте ещё раз, пож');
+            }
         }
     });
 }
 
-
-
 function await(timeoutms, max) {
-    if(max === 0) {
+    if (max === 0) {
         return;
     }
 
@@ -63,24 +63,67 @@ function await(timeoutms, max) {
         url: "/api/game/" + state.gameId + "/wait-for-my-move",
         data: JSON.stringify({}),
         contentType: "application/json; charset=utf-8",
-        headers: { 'ptoken': state.ptoken },
+        headers: {'ptoken': state.ptoken},
         dataType: "json",
         error: function (err) {
-            if(err.statusText === 'timeout') {
-                await(timeoutms, max-1);
+            if (err.statusText === 'timeout') {
+                await(timeoutms, max - 1);
             } else {
-                alert(err.statusText);
+                console.log(err.status + " " + err.statusText);
             }
         },
         success: function (data) {
             handleBoardUpdate(data);
         },
-        failure: function (errMsg) {
-
-            alert(errMsg);
-        },
         timeout: timeoutms
     });
+}
+
+function handleMove(to) {
+    console.log("handle move " + state.selectedPosition + to);
+    if (state.selectedPosition && to) {
+        if (isPromotion(state.selectedPosition, to)) {
+            state.to = to;
+            promptPromotion();
+        } else {
+            move(state.selectedPosition, to);
+        }
+    }
+}
+
+function move(from, to, promotion) {
+    const moveDto = {from: from, to: to, promotion: promotion};
+
+    $.ajax({
+        type: "POST",
+        url: "/api/game/" + state.gameId + "/move",
+        data: JSON.stringify(moveDto),
+        contentType: "application/json; charset=utf-8",
+        headers: {'ptoken': state.ptoken},
+        dataType: "json",
+        error: function (err) {
+            console.log(err.status + " " + err.statusText);
+        },
+        success: function (data) {
+            handleBoardUpdate(data);
+            if (!state.gameState.gameFinished) {
+                await(1000 * 60 * 5, 50);
+            }
+        }
+    });
+}
+
+function isPromotion(from, to) {
+    return (to.charAt(1) === '1' || to.charAt(1) === '8')
+        && atPosition(from).attr('data-piece').includes('pawn');
+}
+
+function promptPromotion() {
+    if (state.isBlack) {
+        $("#promoteblack").show();
+    } else {
+        $("#promotewhite").show();
+    }
 }
 
 function initGameParams(params) {
@@ -91,28 +134,58 @@ function initGameParams(params) {
     state.gameState = params.gameState;
     emptyBoard();
 
+    updateStatusMessage();
     updateBoardState();
 
     setJoinLink(state.gameId);
-    if(!state.isBlack) {
-        $(".ontop").toggle();
+    if (!state.isBlack) {
+        $("#hostscreen").toggle();
     }
 
-    await(10000, 50);
+    await(1000 * 60 * 5, 50);
 }
 
 function handleBoardUpdate(gameState) {
     state.gameState = gameState;
+
+    updateStatusMessage();
     updateBoardState();
 }
 
+function updateStatusMessage() {
+    let check = '';
+    let text = '';
+
+    $('#gamestatus').text('').css('opacity', 0);
+    if (!state.gameState.gameFinished) {
+        if (state.gameState.check) {
+            check = ': ШАХ';
+        }
+
+        if (state.gameState.currentPlayer === 'WHITE') {
+            text = "Ход белых" + check;
+        } else {
+            text = "Ход черных" + check;
+        }
+    } else {
+        if (state.gameState.winner) {
+            text = "Мат! Победа" + ((state.gameState.winner === 'WHITE') ? 'Белых!' : 'Черных');
+        } else {
+            text = "Ничья. Победила дружба.";
+        }
+    }
+
+    setTimeout(() => {
+        $('#gamestatus').text(text).css('opacity', 1);
+    }, 300);
+}
 
 function setJoinLink(gameid) {
     $('#joinlink').text(window.location.origin + '?joinid=' + gameid);
 }
 
 function updateBoardState() {
-    $(".ontop").hide();
+    $("#hostscreen").hide();
 
     state.validMoves = {};
 
@@ -125,6 +198,15 @@ function updateBoardState() {
             state.validMoves[p.position] = p.validMoves;
         }
     });
+    highlightLastOppMove();
+}
+
+function highlightLastOppMove() {
+    if (state.gameState.myTurn && state.gameState.lastOpponentMove) {
+        const m = state.gameState.lastOpponentMove;
+        atPosition(m.from).attr('data-piece-state', 'oppmove');
+        atPosition(m.to).attr('data-piece-state', 'oppmove');
+    }
 }
 
 function cleanupPieces() {
@@ -150,22 +232,30 @@ function atPosition(pos) {
     return $('#board td[data-position=' + pos + ']');
 }
 
-// {
-//     "id": "5ad11c59-5fbd-4afc-8c1d-7c20675bb893",
-//     "token": "c5935f78-56b1-4ba2-842e-1044018ae94a",
-//     "gameState": {
-//     "pieces": [
-//         {
-//             "position": "c2",
-//             "color": "WHITE",
-//             "pieceType": "PAWN",
-//             "validMoves": [
-//                 "c3",
-//                 "c4"
-//             ]
-//         },
-//         {
-//             "position": "b1",
+function promoteQueen() {
+    completePromotion('QUEEN');
+}
+
+function promoteRock() {
+    completePromotion('ROCK');
+}
+
+function promoteBishop() {
+    completePromotion('BISHOP');
+}
+
+function promoteKnight() {
+    completePromotion('KNIGHT');
+}
+
+function completePromotion(pieceType) {
+    $("#promotewhite").hide();
+    $("#promoteblack").hide();
+
+
+    move(state.selectedPosition, state.to, pieceType);
+}
+
 
 function foreachPosition(consumer) {
     let rowNums = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -229,11 +319,18 @@ function boardTr(row, cols, styles) {
 }
 
 function handleBoardClick(pos) {
-    cleanupSelections();
-    if (state.gameState.myTurn
-        && atPosition(pos).attr('data-piece')
-        && atPosition(pos).attr('data-piece').includes(state.playerSide.toLowerCase())) {
-        handleMyPieceClickOnMyMove(pos);
+    if (atPosition(pos).attr('data-piece-state') === 'move') {
+        handleMove(pos);
+    } else {
+
+        cleanupSelections();
+        highlightLastOppMove();
+        if (!state.gameState.gameFinished
+            && state.gameState.myTurn
+            && atPosition(pos).attr('data-piece')
+            && atPosition(pos).attr('data-piece').includes(state.playerSide.toLowerCase())) {
+            handleMyPieceClickOnMyMove(pos);
+        }
     }
 
     // alert('clicked on ' + pos);
@@ -241,6 +338,7 @@ function handleBoardClick(pos) {
 
 function handleMyPieceClickOnMyMove(pos) {
     atPosition(pos).attr('data-piece-state', 'selected');
+    state.selectedPosition = pos;
     const validMoves = state.validMoves[pos];
     if (validMoves) {
         validMoves.forEach((m, i) => {
@@ -273,55 +371,6 @@ function fillMeetingTable(meetings) {
     });
 }
 
-function initBoard() {
-    if (gameState) {
-
-    }
-}
-
-function updateBoard() {
-    if (gameState) {
-
-    }
-
-}
-
-function selectPiece() {
-
-}
-
-function move() {
-
-}
-
-function showError(message) {
-    alert(message);
-    console.log(message);
-}
-
-function hostReq() {
-
-    $.ajax({
-        type: "POST",
-        url: "/api/game/host",
-        data: JSON.stringify({}),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function (data) {
-            handleHostResp(data);
-        },
-        failure: function (errMsg) {
-            showError(errMsg);
-        }
-    });
-}
-
-function handleHostResp(data) {
-    if (data) {
-
-    }
-
-}
 
 
 

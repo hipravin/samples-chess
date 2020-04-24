@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -86,7 +85,7 @@ public class GameManager {
 
             GamePlayerDesc gamePlayerDesc = metadata.currentPlayerDesc();
             Optional.ofNullable(handlers.remove(gamePlayerDesc)).ifPresent(h -> {
-                log.debug("Handkers present {} {} {}", metadata.getId(), metadata.currentPlayerToken(), metadata.getChessGame().getCurrentPlayer());
+                log.debug("Handlers present {} {} {}", metadata.getId(), metadata.currentPlayerToken(), metadata.getChessGame().getCurrentPlayer());
                 h.accept(metadata);
             });
 
@@ -95,7 +94,7 @@ public class GameManager {
 
         @Override
         public void onError(Throwable throwable) {
-
+            log.error(throwable.getMessage(), throwable);
         }
 
         @Override
