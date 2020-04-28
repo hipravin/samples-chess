@@ -44,7 +44,6 @@ public class GameManager {
         chessGameMetadata.setSecondPlayerJoined(true);
         gameRepository.save(chessGameMetadata);
         gameUpdatesPublisher.submit(chessGameMetadata);
-
         return chessGameMetadata;
     }
 

@@ -1,8 +1,6 @@
 $(document).ready(function () {
-    let searchParams = new URLSearchParams(window.location.search);
-    // searchParams.has('sent') // true
-    // let param = searchParams.get('sent')
-    if (!searchParams.has('joinid')) {
+    const searchParams = new URLSearchParams(window.location.search);
+     if (!searchParams.has('joinid')) {
         host();
     } else {
         join(searchParams.get('joinid'));
@@ -19,7 +17,6 @@ var state = {
 };
 
 function host() {
-
     $.ajax({
         type: "POST",
         url: "/api/game/host",
@@ -29,7 +26,7 @@ function host() {
         success: function (data) {
             initGameParams(data);
         },
-        failure: function (errMsg) {
+        error: function (errMsg) {
             alert(errMsg);
         }
     });
@@ -169,7 +166,7 @@ function updateStatusMessage() {
         }
     } else {
         if (state.gameState.winner) {
-            text = "Мат! Победа" + ((state.gameState.winner === 'WHITE') ? 'Белых!' : 'Черных');
+            text = "Мат! Победа " + ((state.gameState.winner === 'WHITE') ? 'Белых!' : 'Черных');
         } else {
             text = "Ничья. Победила дружба.";
         }
@@ -332,8 +329,6 @@ function handleBoardClick(pos) {
             handleMyPieceClickOnMyMove(pos);
         }
     }
-
-    // alert('clicked on ' + pos);
 }
 
 function handleMyPieceClickOnMyMove(pos) {
@@ -345,30 +340,6 @@ function handleMyPieceClickOnMyMove(pos) {
             atPosition(m).attr('data-piece-state', 'move');
         });
     }
-}
-
-function fillMeetingTable(meetings) {
-    var mtgtbody = $('#meetingsTbody');
-
-    mtgtbody.empty();
-
-    meetings.forEach((m, i) => {
-        let removeBtn = $('<a class="btn btn-danger" role="button">X</a>')
-            .click(() => {
-                dropMeeting(m.id);
-            });
-
-        let tr = $('<tr>')
-            .append($('<td>').text(m.description))
-            .append($('<td>').text(formatLocal(Date.parse(m.meetingTimeDate))))
-            .append($('<td>').text(formatLocal(Date.parse(m.meetingTimeOffsetDateTime))))
-            .append($('<td>').text(formatNy(Date.parse(m.meetingTimeDate))))
-            .append($('<td>').text(formatNy(Date.parse(m.meetingTimeOffsetDateTime))))
-            .append($('<td>').append(removeBtn));
-
-        mtgtbody.append(tr);
-
-    });
 }
 
 

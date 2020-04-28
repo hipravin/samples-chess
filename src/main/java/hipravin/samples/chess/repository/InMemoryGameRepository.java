@@ -20,7 +20,6 @@ public class InMemoryGameRepository implements GameRepository {
         ChessGameMetadata chessGameMetadata = new ChessGameMetadata();
         chessGameMetadata.setChessGame(chessGame);
         chessGameMetadata.setId(generateId());
-        chessGameMetadata.setId(UUID.randomUUID().toString());
 
         metadataMap.put(chessGameMetadata.getId(), chessGameMetadata);
         return chessGameMetadata;
