@@ -21,6 +21,8 @@ public class Position {
         this.y = y;
     }
 
+    //as the second thought we can better just put all 64 positions to the precalculated pool
+    //like HashMap<String, Position> and skip regexp check, switch and parseInt with sing map lookup.
     public static Position of(String s) {
         if(!s.matches("(?i)[A-H][1-8]")) {
             throw new IllegalArgumentException("Position invalid: " + s);
